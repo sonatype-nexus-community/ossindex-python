@@ -1,0 +1,59 @@
+[tool.poetry]
+name = "ossindex-lib"
+version = "0.1.0"
+description = "A library for querying the OSS Index free catalogue of open source components to help developers identify vulnerabilities, understand risk, and keep their software safe."
+authors = ["Paul Horton <phorton@sonatype.com>"]
+maintainers = ["Paul Horton <phorton@sonatype.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/sonatype-nexus-community/ossindex-python"
+repository = "https://github.com/sonatype-nexus-community/ossindex-python"
+packages = [
+    { include = "ossindex" }
+]
+include = [
+    "LICENSE"
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Information Technology',
+    'Intended Audience :: Legal Industry',
+    'Intended Audience :: System Administrators',
+    'Topic :: Security',
+    'Topic :: Software Development',
+    'Topic :: System :: Software Distribution',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9'
+]
+keywords = [
+    "SCA", "OWASP"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/sonatype-nexus-community/ossindex-python/issues"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+tinydb = "^4.5.1"
+
+[tool.poetry.dev-dependencies]
+tox = "^3.24.3"
+coverage = "^5.5"
+flake8 = "^3.9.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_variable = [
+    "pyproject.toml:version"
+]
+branch = "master"
+upload_to_pypi = true
+upload_to_release = true
+build_command = "pip install poetry && poetry build"
