@@ -1,0 +1,8 @@
+[
+  {
+    "coordinates": "pkg:pypi/pip@21.2.4",
+    "description": "The PyPA recommended tool for installing Python packages.",
+    "reference": "https://ossindex.sonatype.org/component/pkg:pypi/pip@21.2.4?utm_source=mozilla&utm_medium=integration&utm_content=5.0",
+    "vulnerabilities": []
+  }
+]

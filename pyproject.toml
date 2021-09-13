@@ -39,6 +39,8 @@ keywords = [
 [tool.poetry.dependencies]
 python = "^3.6"
 tinydb = "^4.5.1"
+packageurl-python = "^0.9.4"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.3"
