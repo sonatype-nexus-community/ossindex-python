@@ -43,7 +43,7 @@ class OssIndex:
     _oss_index_host: str = 'https://ossindex.sonatype.org'
     _oss_max_coordinates_per_request: int = 128
 
-    def __init__(self, enable_cache: bool = False, cache_location: str = None):
+    def __init__(self, enable_cache: bool = True, cache_location: str = None):
         self._caching_enabled = enable_cache
         if self._caching_enabled:
             logger.info('OssIndex caching is ENABLED')
