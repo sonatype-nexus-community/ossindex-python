@@ -26,6 +26,45 @@ Install from pypi.org as you would any other Python module:
 pip install ossindex-lib
 ```
 
+## Usage
+
+First create an instance of `OssIndex`, optionally enabling local caching
+```
+o = OssIndex()
+```
+
+Then supply a `List` of [PackageURL](https://github.com/package-url/packageurl-python) objects that you want to ask
+OSS Index about. If you don't want to care about generating this list yourself, perhaps look to a tool like [Jake](https://github.com/sonatype-nexus-community/jake)
+(which uses this library) and will do all the hard work for you!
+
+As a quick test, you could run:
+```
+o = OssIndex()
+results: List[OssIndexComponent] = o.get_component_report(packages=[
+    PackageURL.from_string(purl='pkg:pypi/pip@19.2.0')
+])
+for r in results:
+    print("{}: {} known vulnerabilities".format(r.get_coordinates(), len(r.get_vulnerabilities())))
+    v: Vulnerability
+    for v in r.get_vulnerabilities():
+        print('    - {}'.format(str(v)))
+```
+
+... which would output something like ...
+```
+pkg:pypi/pip@19.2.0: 1 known vulnerabilities
+    - <Vulnerability id=e4c955a3-2004-472e-920b-783fea46c3cd, name=OSSINDEX-783f-ea46-c3cd, cvss_score=3.6>
+```
+
+## Logging
+
+This library send log events to a standard Python `logger` named `ossindex`. You can configure the logger to output as
+required through the standard [Python logging configuration](https://docs.python.org/3/library/logging.config.html).
+
+## Todos
+
+1. Support authentication against OSS Index
+
 ## Python Support
 
 We endeavour to support all functionality for all [current actively supported Python versions](https://www.python.org/downloads/).
