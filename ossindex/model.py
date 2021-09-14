@@ -100,7 +100,7 @@ class OssIndexComponent:
     def from_json(o: dict):
         oic = OssIndexComponent(
             coordinates=o['coordinates'],
-            description=o['description'],
+            description=o['description'] if 'description' in o.keys() else None,
             oss_index_reference_url=o['reference'],
             vulnerabilities=o['vulnerabilities']
         )
