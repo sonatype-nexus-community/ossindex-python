@@ -1,4 +1,5 @@
-from typing import List
+from functools import reduce
+from typing import List, Union
 from urllib.parse import ParseResult, urlparse
 from uuid import UUID
 
@@ -71,6 +72,33 @@ class Vulnerability:
         for ext_ref in external_references:
             self._external_references.append(urlparse(ext_ref))
 
+    def get_id(self) -> UUID:
+        return self._id
+
+    def get_display_name(self) -> str:
+        return self._display_name
+
+    def get_title(self) -> str:
+        return self._title
+
+    def get_description(self) -> str:
+        return self._description
+
+    def get_cvss_score(self) -> float:
+        return self._cvss_score
+
+    def get_cvss_vector(self) -> str:
+        return self._cvss_vector
+
+    def get_cwe(self) -> str:
+        return self._cwe
+
+    def get_oss_index_reference_url(self) -> Union[None, ParseResult]:
+        return self._oss_index_url
+
+    def get_external_reference_urls(self) -> List[ParseResult]:
+        return self._external_references
+
     def __repr__(self):
         return '<Vulnerability id={}, name={}, cvss_score={}>'.format(
             self._id, self._display_name, self._cvss_score
@@ -133,6 +161,15 @@ class OssIndexComponent:
 
     def get_vulnerabilities(self) -> List[Vulnerability]:
         return self._vulnerabilities
+
+    def get_max_cvss_score(self) -> float:
+        max_cvss_score = 0.0
+        if self.has_known_vulnerabilities():
+            max_cvss_score = reduce(
+                lambda a, b: a.get_cvss_score() if a.get_cvss_score() > b.get_cvss_score() else b.get_cvss_score(),
+                self._vulnerabilities
+            )
+        return max_cvss_score
 
     def has_known_vulnerabilities(self) -> bool:
         return len(self._vulnerabilities) != 0
