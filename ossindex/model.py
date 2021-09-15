@@ -172,10 +172,11 @@ class OssIndexComponent:
     def get_max_cvss_score(self) -> float:
         max_cvss_score = 0.0
         if self.has_known_vulnerabilities():
-            max_cvss_score = reduce(
-                lambda a, b: a.get_cvss_score() if a.get_cvss_score() > b.get_cvss_score() else b.get_cvss_score(),
+            max_scoring_vulnerability: Vulnerability = reduce(
+                lambda a, b: a if a.get_cvss_score() > b.get_cvss_score() else b,
                 self._vulnerabilities
             )
+            max_cvss_score = max_scoring_vulnerability.get_cvss_score()
         return max_cvss_score
 
     def has_known_vulnerabilities(self) -> bool:
