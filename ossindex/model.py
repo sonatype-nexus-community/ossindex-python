@@ -99,10 +99,10 @@ class Vulnerability:
     def get_cwe(self) -> str:
         return self._cwe
 
-    def get_oss_index_reference_url(self) -> Union[None, ParseResult]:
-        return self._oss_index_url
+    def get_oss_index_reference_url(self) -> Union[str, None]:
+        return self._oss_index_url.geturl() if self._oss_index_url else None
 
-    def get_external_reference_urls(self) -> List[ParseResult]:
+    def get_external_reference_urls(self) -> List[str]:
         return self._external_references
 
     def __repr__(self):
