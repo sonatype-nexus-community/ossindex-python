@@ -13,6 +13,7 @@ class Vulnerability:
     _description: str
     _cvss_score: float
     _cvss_vector: str
+    _cve: str
     _cwe: str
     _oss_index_url: ParseResult
     _external_references: List[ParseResult]
@@ -49,7 +50,8 @@ class Vulnerability:
             description=o['description'],
             cvss_score=o['cvssScore'],
             cvss_vector=o['cvssVector'],
-            cwe=o['cwe'],
+            cve=o['cve'] if 'cve' in o.keys() else None,
+            cwe=o['cwe'] if 'cwe' in o.keys() else None,
             oss_index_url=o['reference'],
             external_references=o['externalReferences']
         )
@@ -57,7 +59,7 @@ class Vulnerability:
         return v
 
     def __init__(self, id: str, display_name: str, title: str, description: str = None,
-                 cvss_score: float = None, cvss_vector: str = None, cwe: str = None,
+                 cvss_score: float = None, cvss_vector: str = None, cve: str = None, cwe: str = None,
                  oss_index_url: str = None, external_references: List[str] = []):
         self._id = id
         self._display_name = display_name
@@ -65,6 +67,7 @@ class Vulnerability:
         self._description = description
         self._cvss_score = cvss_score
         self._cvss_vector = cvss_vector
+        self._cve = cve
         self._cwe = cwe
         if oss_index_url:
             self._oss_index_url = urlparse(oss_index_url)
@@ -90,6 +93,9 @@ class Vulnerability:
     def get_cvss_vector(self) -> str:
         return self._cvss_vector
 
+    def get_cve(self) -> str:
+        return self._cve
+
     def get_cwe(self) -> str:
         return self._cwe
 
@@ -112,6 +118,7 @@ class Vulnerability:
             'description': self._description,
             'cvssScore': self._cvss_score,
             'cvssVector': self._cvss_vector,
+            'cve': self._cve,
             'cwe': self._cwe,
             'reference': None if self._oss_index_url is None else str(self._oss_index_url),
             'externalReferences': list(map(lambda ref: ref.geturl(), self._external_references))
