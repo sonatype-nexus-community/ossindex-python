@@ -70,4 +70,4 @@ class TestModel(TestCase):
             vulnerabilities=vulns
         )
         self.assertEqual(len(oic.get_vulnerabilities()), 2)
-        self.assertEqual(oic.get_max_cvss_score(), 9.z)
+        self.assertEqual(oic.get_max_cvss_score(), 9.0)
