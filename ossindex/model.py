@@ -103,7 +103,7 @@ class Vulnerability:
         return self._oss_index_url.geturl() if self._oss_index_url else None
 
     def get_external_reference_urls(self) -> List[str]:
-        return self._external_references
+        return list(map(lambda ref_url: ref_url.geturl(), self._external_references))
 
     def __repr__(self):
         return '<Vulnerability id={}, name={}, cvss_score={}>'.format(
@@ -120,7 +120,7 @@ class Vulnerability:
             'cvssVector': self._cvss_vector,
             'cve': self._cve,
             'cwe': self._cwe,
-            'reference': None if self._oss_index_url is None else str(self._oss_index_url),
+            'reference': self.get_oss_index_reference_url(),
             'externalReferences': list(map(lambda ref: ref.geturl(), self._external_references))
         }
 
