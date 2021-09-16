@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.1 (2021-09-16)
+### Fix
+* Typo in README ([`a260e91`](https://github.com/sonatype-nexus-community/ossindex-python/commit/a260e912227895d42b01a4775e36e7124fbc6f0b))
+
 ## v0.2.0 (2021-09-15)
 ### Feature
 * Added accessor methods to Vulnerability class + helper method on OssIndexComponent to get the overriding maximum CVSS Score ([`15870a1`](https://github.com/sonatype-nexus-community/ossindex-python/commit/15870a19c7e62efb7f1c10f8f785f9d272152fc9))
