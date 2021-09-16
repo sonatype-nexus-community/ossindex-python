@@ -6,7 +6,7 @@
 [![GitHub license](https://img.shields.io/github/license/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/blob/main/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/issues)
 [![GitHub forks](https://img.shields.io/github/forks/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/network)
-[![GitHub stars](https://img.shields.io/github/stars/sonatype-nexus-community/ossindex-pythonb)](https://github.com/sonatype-nexus-community/ossindex-python/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/stargazers)
 
 ----
 
