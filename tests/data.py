@@ -41,7 +41,8 @@ def component_pip_18_with_multiple_vulnerabilities() -> OssIndexComponent:
             cvss_vector='CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N',
             cve='CVE-2019-20916',
             reference='https://ossindex.sonatype.org/vulnerability/6dcf0940-d3c7-480f-84de-e90c3631ea81?'
-                      'component-type=pypi&component-name=pip&utm_source=mozilla&utm_medium=integration&utm_content=5.0',
+                      'component-type=pypi&component-name=pip&utm_source=mozilla&utm_medium=integration'
+                      '&utm_content=5.0',
             external_references=[
                 'https://nvd.nist.gov/vuln/detail/CVE-2019-20916'
             ]
@@ -68,4 +69,3 @@ def component_pip_18_with_multiple_vulnerabilities() -> OssIndexComponent:
         )
     )
     return oic
-

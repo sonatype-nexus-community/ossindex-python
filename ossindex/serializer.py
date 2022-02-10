@@ -16,7 +16,8 @@ import re
 from json import JSONEncoder
 from typing import Any, Dict
 
-from packageurl import PackageURL
+# See https://github.com/package-url/packageurl-python/issues/65
+from packageurl import PackageURL  # type: ignore
 
 from .model import OssIndexComponent, Vulnerability
 

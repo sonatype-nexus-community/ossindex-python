@@ -20,8 +20,7 @@ from uuid import uuid4
 
 from ossindex.model import OssIndexComponent, Vulnerability
 from ossindex.serializer import json_decoder
-
-from . import FIXTURES_DIRECTORY
+from tests import FIXTURES_DIRECTORY
 
 
 class TestModel(TestCase):

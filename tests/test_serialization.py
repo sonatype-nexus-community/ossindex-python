@@ -18,8 +18,8 @@ from typing import Any
 from unittest import TestCase
 
 from ossindex.serializer import json_decoder, OssIndexJsonEncoder
-from . import FIXTURES_DIRECTORY
-from .data import component_pip_18_no_vulnerabilities, component_pip_18_with_multiple_vulnerabilities
+from tests import FIXTURES_DIRECTORY
+from tests.data import component_pip_18_no_vulnerabilities, component_pip_18_with_multiple_vulnerabilities
 
 
 class TestSerializer(TestCase):
