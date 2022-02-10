@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from tempfile import TemporaryDirectory
 from typing import List
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
@@ -35,8 +36,6 @@ class TestOssIndex(TestCase):
 
         mock_post.assert_called()
         self.assertEqual(1, len(results))
-
-        print(f'{results}')
 
         first_result: OssIndexComponent = results.pop()
         self.assertEqual(0, len(first_result.vulnerabilities))
@@ -87,3 +86,24 @@ class TestOssIndex(TestCase):
 
         mock_post.assert_called()
         self.assertEqual(len(results), 2)
+
+    @mock.patch('requests.post', side_effect=mock_oss_index_post)
+    def test_oss_index_caching_with_multiple_packages(self, mock_post: MagicMock):
+        with TemporaryDirectory() as d:
+            oss: OssIndex = OssIndex(enable_cache=True, cache_location=str(d))
+
+            results: List[OssIndexComponent] = oss.get_component_report(packages=[
+                PackageURL(type='pypi', name='cryptography', version='3.3.1'),
+                PackageURL(type='pypi', name='pip', version='21.2.3')
+            ])
+
+            mock_post.assert_called()
+            self.assertEqual(2, len(results))
+
+            results2: List[OssIndexComponent] = oss.get_component_report(packages=[
+                PackageURL(type='pypi', name='cryptography', version='3.3.1'),
+                PackageURL(type='pypi', name='pip', version='21.2.3')
+            ])
+
+            mock_post.assert_called()
+            self.assertEqual(2, len(results2))

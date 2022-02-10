@@ -17,7 +17,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import pkg_resources
 import requests
@@ -27,14 +27,13 @@ from tinydb import TinyDB, Query
 from tinydb.table import Document
 
 from .model import OssIndexComponent
-from .serializer import json_decoder
+from .serializer import json_decoder, OssIndexJsonEncoder
 
 logger = logging.getLogger('ossindex')
 
 
 class OssIndex:
     _caching_enabled: bool = False
-    _cache_database: Optional[TinyDB] = None
     _cache_directory: str = '.ossindex'
     _cache_ttl_in_hours: int = 12
 
@@ -48,20 +47,16 @@ class OssIndex:
             logger.info('OssIndex caching is ENABLED')
             self._setup_cache(cache_location=cache_location)
 
-    def __del__(self) -> None:
-        if self._caching_enabled and self._cache_database:
-            logger.debug('Closing cache DB safely')
-            self._cache_database.close()
-
     def get_component_report(self, packages: List[PackageURL]) -> List[OssIndexComponent]:
         logger.debug('A total of {} Packages to be queried against OSS Index'.format(len(packages)))
         return self._get_results(packages=packages)
 
     def purge_local_cache(self) -> None:
-        if self._caching_enabled and self._cache_database:
+        if self._caching_enabled:
             logger.info('Truncating local cache database as requested')
-            self._cache_database.truncate()
-            logger.info('Local OSS Index cache has been purged')
+            with self._get_cache_db() as db:
+                db.truncate()
+                logger.info('Local OSS Index cache has been purged')
 
     def _chunk_packages_for_oss_index(self, packages: List[PackageURL]) -> List[List[PackageURL]]:
         """
@@ -81,7 +76,7 @@ class OssIndex:
             self._oss_index_host, self._oss_index_api_version, api_uri
         )
 
-    def _get_cached_results(self, packages: List[PackageURL]) -> tuple[List[PackageURL], List[OssIndexComponent]]:
+    def _get_cached_results(self, packages: List[PackageURL]) -> Tuple[List[PackageURL], List[OssIndexComponent]]:
         """
         Takes a list of packages and returns two Lists:
             1. Packages without cached results
@@ -90,33 +85,34 @@ class OssIndex:
         :param packages: List[PackageURL]
         :return: (List[PackageURL], List[OssIndexComponent])
         """
-        if not self._caching_enabled or not self._cache_database:
+        if not self._caching_enabled:
             # This should not be possible, but adding for developer safety
             return packages, []
 
         now = datetime.now()
         cached_results: List[OssIndexComponent] = []
         non_cached_packaged: List[PackageURL] = []
-        for package in packages:
-            logger.debug('   Checking in cache for {}'.format(package.to_string()))
-            cache_results: List[Document] = self._cache_database.search(Query().coordinates == package.to_string())
-            if len(cache_results) == 0:
-                # Not cached
-                logger.debug('      Not in cache')
-                non_cached_packaged.append(package)
-            elif datetime.strptime(cache_results[0]['expiry'], '%Y-%m-%dT%H:%M:%S.%f') < now:
-                logger.debug('      Cached, but result expired')
-                non_cached_packaged.append(package)
-            else:
-                logger.debug('      Cached, loading from cache')
-                cached_results.append(
-                    json.loads(json.dumps(cache_results[0]['response']), object_hook=json_decoder)
-                )
+        with self._get_cache_db() as cache_db:
+            for package in packages:
+                logger.debug('   Checking in cache for {}'.format(package.to_string()))
+                cache_results: List[Document] = cache_db.search(Query().coordinates == package.to_string())
+                if len(cache_results) == 0:
+                    # Not cached
+                    logger.debug('      Not in cache')
+                    non_cached_packaged.append(package)
+                elif datetime.strptime(cache_results[0]['expiry'], '%Y-%m-%dT%H:%M:%S.%f') < now:
+                    logger.debug('      Cached, but result expired')
+                    non_cached_packaged.append(package)
+                else:
+                    logger.debug('      Cached, loading from cache')
+                    cached_results.append(
+                        json.loads(json.dumps(cache_results[0]['response']), object_hook=json_decoder)
+                    )
 
         return non_cached_packaged, cached_results
 
     @staticmethod
-    def _get_headers() -> dict[str, str]:
+    def _get_headers() -> Dict[str, str]:
         return {
             'Accept': 'application/vnd.ossindex.component-report.v1+json',
             'Content-type': 'application/vnd.ossindex.component-report-request.v1+json',
@@ -164,35 +160,38 @@ class OssIndex:
         return results
 
     def _upsert_cache_with_oss_index_responses(self, oss_components: List[OssIndexComponent]) -> None:
-        if not self._caching_enabled or not self._cache_database:
+        if not self._caching_enabled:
             return
 
         now = datetime.now()
         cache_expiry = now + timedelta(hours=self._cache_ttl_in_hours)
         oc: OssIndexComponent
-        for oc in oss_components:
-            cache_query_result: List[Document] = self._cache_database.search(
-                Query().coordinates == oc.coordinates)
-            if len(cache_query_result) == 0:
-                # New component for caching
-                logger.debug('    Caching new Component results for {}'.format(oc.coordinates))
-                self._cache_database.insert({
-                    'coordinates': oc.coordinates,
-                    'response': json.dumps(oc),
-                    'expiry': cache_expiry.isoformat()
-                })
-            else:
-                # Update existing cache
-                logger.debug('    Might refresh cache for {}'.format(oc.coordinates))
-                if now > datetime.strptime(cache_query_result[0]['expiry'], '%Y-%m-%dT%H:%M:%S.%f'):
-                    # Cache expired - update it!
-                    logger.debug('        Cache expired for {} - UPDATING CACHE'.format(oc.coordinates))
-                    self._cache_database.update({
-                        'response': json.dumps(oc),
+        with self._get_cache_db() as cache_db:
+            for oc in oss_components:
+                cache_query_result: List[Document] = cache_db.search(Query().coordinates == oc.coordinates)
+                if len(cache_query_result) == 0:
+                    # New component for caching
+                    logger.debug('    Caching new Component results for {}'.format(oc.coordinates))
+                    cache_db.insert({
+                        'coordinates': oc.coordinates,
+                        'response': json.dumps(oc, cls=OssIndexJsonEncoder),
                         'expiry': cache_expiry.isoformat()
-                    }, cache_query_result[0].doc_id)
+                    })
                 else:
-                    logger.debug('    Cache is still valid for {} - not updating'.format(oc.coordinates))
+                    # Update existing cache
+                    logger.debug('    Might refresh cache for {}'.format(oc.coordinates))
+                    if now > datetime.strptime(cache_query_result[0]['expiry'], '%Y-%m-%dT%H:%M:%S.%f'):
+                        # Cache expired - update it!
+                        logger.debug('        Cache expired for {} - UPDATING CACHE'.format(oc.coordinates))
+                        cache_db.update({
+                            'response': json.dumps(oc, cls=OssIndexJsonEncoder),
+                            'expiry': cache_expiry.isoformat()
+                        }, cache_query_result.pop().doc_id)
+                    else:
+                        logger.debug('    Cache is still valid for {} - not updating'.format(oc.coordinates))
+
+    def _get_cache_db(self) -> TinyDB:
+        return TinyDB(os.path.join(self._cache_directory, 'ossindex.json'))
 
     def _setup_cache(self, cache_location: Optional[str] = None) -> None:
         full_cache_path: str
@@ -205,4 +204,3 @@ class OssIndex:
             Path(full_cache_path).mkdir(parents=True, exist_ok=True)
 
         self._cache_directory = str(Path(full_cache_path))
-        self._cache_database = TinyDB(os.path.join(self._cache_directory, 'ossindex.json'))

@@ -218,7 +218,7 @@ class OssIndexComponent:
 
     """
 
-    def __init__(self, *, coordinates: str, description: str, reference: str,
+    def __init__(self, *, coordinates: str, description: Optional[str] = None, reference: str,
                  vulnerabilities: Optional[Iterable[Vulnerability]] = None) -> None:
         self.coordinates = coordinates
         self.description = description
@@ -240,17 +240,17 @@ class OssIndexComponent:
         self._coordinates = coordinates
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         """
         Description of the Component from OSS Index.
 
         Returns:
-            `str`
+            `str` if set else `None`
         """
         return self._description
 
     @description.setter
-    def description(self, description: str) -> None:
+    def description(self, description: Optional[str]) -> None:
         self._description = description
 
     @property
