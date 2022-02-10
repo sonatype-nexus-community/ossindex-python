@@ -1,0 +1,8 @@
+# exactly pinned dependencies to the lowest version regardless of python_version
+# see pyptoject file for ranges
+
+packageurl-python == 0.9.0
+requests == 2.25.1
+tinydb == 4.5.0
+types-requests == 2.25.1
+types-setuptools == 57.0.0

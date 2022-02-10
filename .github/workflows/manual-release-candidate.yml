@@ -13,18 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Deploy to PyPI
+name: Manual Pre Release Publish
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      release_candidate_suffix:
+        description: 'RC Suffix e.g. rc0, beta1, alpha2. Do not include a leading hyphen.'
+        required: true
+        type: string
 
 jobs:
-  release:
-    # https://github.community/t/how-do-i-specify-job-dependency-running-in-another-workflow/16482
-    # limit this to being run on regular commits, not the commits that semantic-release will create
-    if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'chore(release):')
+  release_candidate:
     runs-on: ubuntu-latest
-    concurrency: release
+    concurrency: release_candidate
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,16 +34,20 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.9
       - name: Install dependencies
         run: |
           python -m pip install poetry --upgrade pip
           poetry config virtualenvs.create false
           poetry install
-      - name: View poetry version
-        run: poetry --version
-      - name: Python Semantic Release
-        uses: relekang/python-semantic-release@master
+          python -m pip install python-semantic-release
+      - name: Apply Pre Release Version
+        run: |
+          RC_VERSION="$(semantic-release --noop --major print-version)-${{ github.event.inputs.release_candidate_suffix }}"
+          echo "RC Version will be: ${RC_VERSION}"
+          poetry version ${RC_VERSION}
+          poetry build
+      - name: Publish Pre Release 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          password: ${{ secrets.PYPI_TOKEN }}

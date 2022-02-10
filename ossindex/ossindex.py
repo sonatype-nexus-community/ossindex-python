@@ -1,56 +1,55 @@
+#
+# Copyright 2022-Present Sonatype Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import json
 import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pkg_resources
 import requests
-from packageurl import PackageURL
+# See https://github.com/package-url/packageurl-python/issues/65
+from packageurl import PackageURL  # type: ignore
 from tinydb import TinyDB, Query
 from tinydb.table import Document
 
-from .model import OssIndexComponent, Vulnerability
+from .model import OssIndexComponent
+from .serializer import json_decoder
 
 logger = logging.getLogger('ossindex')
 
 
-class _OssIndexResponseDecoder(json.JSONDecoder):
-    """
-    This class allows for quick decoding of JSON responses from OSS Index to our models.
-    """
-
-    def __init__(self):
-        json.JSONDecoder.__init__(self, object_hook=self._to_model)
-
-    @classmethod
-    def _to_model(cls, o: dict):
-        if 'vulnerabilities' in o.keys():
-            return OssIndexComponent.from_json(o)
-        else:
-            return Vulnerability.from_json(o)
-
-
 class OssIndex:
     _caching_enabled: bool = False
-    _cache_database: TinyDB = None
+    _cache_database: Optional[TinyDB] = None
     _cache_directory: str = '.ossindex'
-    _cache_location: Path = None
     _cache_ttl_in_hours: int = 12
 
     _oss_index_api_version: str = 'v3'
     _oss_index_host: str = 'https://ossindex.sonatype.org'
     _oss_max_coordinates_per_request: int = 128
 
-    def __init__(self, enable_cache: bool = True, cache_location: str = None):
+    def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None) -> None:
         self._caching_enabled = enable_cache
         if self._caching_enabled:
             logger.info('OssIndex caching is ENABLED')
             self._setup_cache(cache_location=cache_location)
 
-    def __del__(self):
-        if self._caching_enabled:
+    def __del__(self) -> None:
+        if self._caching_enabled and self._cache_database:
             logger.debug('Closing cache DB safely')
             self._cache_database.close()
 
@@ -58,8 +57,8 @@ class OssIndex:
         logger.debug('A total of {} Packages to be queried against OSS Index'.format(len(packages)))
         return self._get_results(packages=packages)
 
-    def purge_local_cache(self):
-        if self._caching_enabled:
+    def purge_local_cache(self) -> None:
+        if self._caching_enabled and self._cache_database:
             logger.info('Truncating local cache database as requested')
             self._cache_database.truncate()
             logger.info('Local OSS Index cache has been purged')
@@ -82,7 +81,7 @@ class OssIndex:
             self._oss_index_host, self._oss_index_api_version, api_uri
         )
 
-    def _get_cached_results(self, packages: List[PackageURL]) -> (List[PackageURL], List[OssIndexComponent]):
+    def _get_cached_results(self, packages: List[PackageURL]) -> tuple[List[PackageURL], List[OssIndexComponent]]:
         """
         Takes a list of packages and returns two Lists:
             1. Packages without cached results
@@ -91,7 +90,7 @@ class OssIndex:
         :param packages: List[PackageURL]
         :return: (List[PackageURL], List[OssIndexComponent])
         """
-        if not self._caching_enabled:
+        if not self._caching_enabled or not self._cache_database:
             # This should not be possible, but adding for developer safety
             return packages, []
 
@@ -111,13 +110,13 @@ class OssIndex:
             else:
                 logger.debug('      Cached, loading from cache')
                 cached_results.append(
-                    json.loads(json.dumps(cache_results[0]['response']), cls=_OssIndexResponseDecoder)
+                    json.loads(json.dumps(cache_results[0]['response']), object_hook=json_decoder)
                 )
 
         return non_cached_packaged, cached_results
 
     @staticmethod
-    def _get_headers() -> dict:
+    def _get_headers() -> dict[str, str]:
         return {
             'Accept': 'application/vnd.ossindex.component-report.v1+json',
             'Content-type': 'application/vnd.ossindex.component-report-request.v1+json',
@@ -127,7 +126,7 @@ class OssIndex:
         }
 
     def _get_results(self, packages: List[PackageURL]) -> List[OssIndexComponent]:
-        results: List[OssIndexComponent] = []
+        results: List[OssIndexComponent] = list()
 
         # First get any cached results
         if self._caching_enabled:
@@ -149,49 +148,53 @@ class OssIndex:
         return results
 
     def _make_oss_index_component_report_call(self, packages: List[PackageURL]) -> List[OssIndexComponent]:
-        data: dict = {
-            'coordinates': list(map(lambda package: package.to_string(), packages))
-        }
-
         response = requests.post(
             url=self._get_api_url('component-report'),
             headers=self._get_headers(),
-            json=data
+            json={
+                'coordinates': list(map(lambda p: str(p.to_string()), packages))
+            }
         )
-        results = json.loads(response.text, cls=_OssIndexResponseDecoder)
+        results: List[OssIndexComponent] = []
+        for oic in response.json(object_hook=json_decoder):
+            results.append(oic)
+
         if self._caching_enabled:
             self._upsert_cache_with_oss_index_responses(oss_components=results)
         return results
 
-    def _upsert_cache_with_oss_index_responses(self, oss_components: List[OssIndexComponent]):
+    def _upsert_cache_with_oss_index_responses(self, oss_components: List[OssIndexComponent]) -> None:
+        if not self._caching_enabled or not self._cache_database:
+            return
+
         now = datetime.now()
         cache_expiry = now + timedelta(hours=self._cache_ttl_in_hours)
         oc: OssIndexComponent
         for oc in oss_components:
             cache_query_result: List[Document] = self._cache_database.search(
-                Query().coordinates == oc.get_coordinates())
+                Query().coordinates == oc.coordinates)
             if len(cache_query_result) == 0:
                 # New component for caching
-                logger.debug('    Caching new Component results for {}'.format(oc.get_coordinates()))
+                logger.debug('    Caching new Component results for {}'.format(oc.coordinates))
                 self._cache_database.insert({
-                    'coordinates': oc.get_coordinates(),
-                    'response': oc.to_json(),
+                    'coordinates': oc.coordinates,
+                    'response': json.dumps(oc),
                     'expiry': cache_expiry.isoformat()
                 })
             else:
                 # Update existing cache
-                logger.debug('    Might refresh cache for {}'.format(oc.get_coordinates()))
+                logger.debug('    Might refresh cache for {}'.format(oc.coordinates))
                 if now > datetime.strptime(cache_query_result[0]['expiry'], '%Y-%m-%dT%H:%M:%S.%f'):
                     # Cache expired - update it!
-                    logger.debug('        Cache expired for {} - UPDATING CACHE'.format(oc.get_coordinates()))
+                    logger.debug('        Cache expired for {} - UPDATING CACHE'.format(oc.coordinates))
                     self._cache_database.update({
-                        'response': oc.to_json(),
+                        'response': json.dumps(oc),
                         'expiry': cache_expiry.isoformat()
                     }, cache_query_result[0].doc_id)
                 else:
-                    logger.debug('    Cache is still valid for {} - not updating'.format(oc.get_coordinates()))
+                    logger.debug('    Cache is still valid for {} - not updating'.format(oc.coordinates))
 
-    def _setup_cache(self, cache_location: str = None):
+    def _setup_cache(self, cache_location: Optional[str] = None) -> None:
         full_cache_path: str
         if not cache_location:
             full_cache_path = os.path.join(Path.home(), self._cache_directory)
@@ -201,5 +204,5 @@ class OssIndex:
         if not os.path.exists(full_cache_path):
             Path(full_cache_path).mkdir(parents=True, exist_ok=True)
 
-        self._cache_directory = Path(full_cache_path)
+        self._cache_directory = str(Path(full_cache_path))
         self._cache_database = TinyDB(os.path.join(self._cache_directory, 'ossindex.json'))
