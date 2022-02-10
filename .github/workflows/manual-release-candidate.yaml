@@ -1,0 +1,53 @@
+#
+# Copyright 2022-Present Sonatype Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Manual Pre Release Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_candidate_suffix:
+        description: 'RC Suffix e.g. rc0, beta1, alpha2. Do not include a leading hyphen.'
+        required: true
+        type: string
+
+jobs:
+  release_candidate:
+    runs-on: ubuntu-latest
+    concurrency: release_candidate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python -m pip install poetry --upgrade pip
+          poetry config virtualenvs.create false
+          poetry install
+          python -m pip install python-semantic-release
+      - name: Apply Pre Release Version
+        run: |
+          RC_VERSION="$(semantic-release --noop --major print-version)-${{ github.event.inputs.release_candidate_suffix }}"
+          echo "RC Version will be: ${RC_VERSION}"
+          poetry version ${RC_VERSION}
+          poetry build
+      - name: Publish Pre Release 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
