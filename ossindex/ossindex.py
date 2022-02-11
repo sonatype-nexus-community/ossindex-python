@@ -133,9 +133,6 @@ class OssIndex:
                 len(results), len(packages)
             ))
 
-        print(f'Got these from cache: {results}')
-        print(f'Leaves these to call OSS Index for: {packages}')
-
         # Second, chunk up packages for which we have no cached results and query OSS Index
         chunk: List[PackageURL]
         chunks = self._chunk_packages_for_oss_index(packages=packages)
