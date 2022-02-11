@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 import json
 import logging
 import os
@@ -106,7 +107,7 @@ class OssIndex:
                 else:
                     logger.debug('      Cached, loading from cache')
                     cached_results.append(
-                        json.loads(json.dumps(cache_results[0]['response']), object_hook=json_decoder)
+                        json.loads(f'[{cache_results[0]["response"]}]', object_hook=json_decoder).pop()
                     )
 
         return non_cached_packaged, cached_results
@@ -131,6 +132,9 @@ class OssIndex:
             logger.debug('   {} cached results found leaving {} to ask OSS Index'.format(
                 len(results), len(packages)
             ))
+
+        print(f'Got these from cache: {results}')
+        print(f'Leaves these to call OSS Index for: {packages}')
 
         # Second, chunk up packages for which we have no cached results and query OSS Index
         chunk: List[PackageURL]

@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 from tempfile import TemporaryDirectory
 from typing import List
 from unittest import TestCase, mock
@@ -86,11 +87,14 @@ class TestOssIndex(TestCase):
 
         mock_post.assert_called()
         self.assertEqual(len(results), 2)
+        for oic_ in results:
+            self.assertIsInstance(oic_, OssIndexComponent)
 
     @mock.patch('requests.post', side_effect=mock_oss_index_post)
     def test_oss_index_caching_with_multiple_packages(self, mock_post: MagicMock):
         with TemporaryDirectory() as d:
             oss: OssIndex = OssIndex(enable_cache=True, cache_location=str(d))
+            oss.purge_local_cache()
 
             results: List[OssIndexComponent] = oss.get_component_report(packages=[
                 PackageURL(type='pypi', name='cryptography', version='3.3.1'),
@@ -99,11 +103,16 @@ class TestOssIndex(TestCase):
 
             mock_post.assert_called()
             self.assertEqual(2, len(results))
+            for oic_ in results:
+                self.assertIsInstance(oic_, OssIndexComponent)
 
-            results2: List[OssIndexComponent] = oss.get_component_report(packages=[
+            oss2: OssIndex = OssIndex(enable_cache=True, cache_location=str(d))
+            results2: List[OssIndexComponent] = oss2.get_component_report(packages=[
                 PackageURL(type='pypi', name='cryptography', version='3.3.1'),
                 PackageURL(type='pypi', name='pip', version='21.2.3')
             ])
 
             mock_post.assert_called()
             self.assertEqual(2, len(results2))
+            for oic_ in results2:
+                self.assertIsInstance(oic_, OssIndexComponent)

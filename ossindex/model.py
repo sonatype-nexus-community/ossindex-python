@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 from typing import Iterable, Optional, Set
 
 # See https://github.com/package-url/packageurl-python/issues/65
@@ -295,9 +296,21 @@ class OssIndexComponent:
         return f'<OssIndexComponent coordinates={self.coordinates}>'
 
     def get_package_url(self) -> PackageURL:
+        """
+        Get a PURL representation of this components coordinates.
+
+        Returns:
+            `PackageURL`
+        """
         return PackageURL.from_string(purl=self.coordinates)
 
     def get_max_cvss_score(self) -> float:
+        """
+        Get the maximum CVSS Score across all Vulnerabilities known for this Component.
+
+        Returns:
+             `float`
+        """
         max_cvss_score = 0.0
         if self.vulnerabilities:
             for v in self.vulnerabilities:
