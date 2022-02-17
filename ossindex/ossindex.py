@@ -169,7 +169,8 @@ class OssIndex:
         oc: OssIndexComponent
         with self._get_cache_db() as cache_db:
             for oc in oss_components:
-                cache_query_result: List[Document] = cache_db.search(Query().coordinates == oc.coordinates)
+                query: Query = Query()
+                cache_query_result: List[Document] = cache_db.search(query.coordinates == oc.coordinates)
                 if len(cache_query_result) == 0:
                     # New component for caching
                     logger.debug('    Caching new Component results for {}'.format(oc.coordinates))
@@ -187,7 +188,7 @@ class OssIndex:
                         cache_db.update({
                             'response': json.dumps(oc, cls=OssIndexJsonEncoder),
                             'expiry': cache_expiry.isoformat()
-                        }, cache_query_result.pop().doc_id)
+                        }, query.coordinates == oc.coordinates)
                     else:
                         logger.debug('    Cache is still valid for {} - not updating'.format(oc.coordinates))
 
