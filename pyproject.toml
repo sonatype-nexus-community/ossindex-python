@@ -40,11 +40,11 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-tinydb = "^4.5.1"
-packageurl-python = "^0.9.4"
-requests = "^2.27.1"
+packageurl-python = "^0.9.0"
+requests = "^2.20.0"
+tinydb = "^4.5.0"
 # `types-requeests` should stay in sync with `requests`
-types-requests = "^2.27.8"
+types-requests = "^2.25.1"
 # `types-setuptools` need to stay in sync with version of `setuptools` - but 47 was not typed...
 types-setuptools = ">= 57.0.0"
 
