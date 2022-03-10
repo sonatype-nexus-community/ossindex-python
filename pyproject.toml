@@ -45,6 +45,8 @@ packageurl-python = "^0.9.0"
 PyYAML = "^5.4.1"
 requests = "^2.20.0"
 tinydb = "^4.5.0"
+# `types-PyYAML` should stay in sycn with version of `PyYAML`
+types-PyYAML = "^5.4.1"
 # `types-requeests` should stay in sync with `requests`
 types-requests = "^2.25.1"
 # `types-setuptools` need to stay in sync with version of `setuptools` - but 47 was not typed...
