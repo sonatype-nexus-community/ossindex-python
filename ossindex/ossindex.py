@@ -16,24 +16,39 @@
 import json
 import logging
 import os
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import pkg_resources
 import requests
+import yaml
 # See https://github.com/package-url/packageurl-python/issues/65
 from packageurl import PackageURL  # type: ignore
 from tinydb import TinyDB, Query
 from tinydb.table import Document
 
+from .exception import AccessDeniedException
 from .model import OssIndexComponent
 from .serializer import json_decoder, OssIndexJsonEncoder
 
 logger = logging.getLogger('ossindex')
 
+if sys.version_info >= (3, 8):
+    from importlib.metadata import version as meta_version
+else:
+    from importlib_metadata import version as meta_version
+
+ossindex_lib_version: str = 'TBC'
+try:
+    ossindex_lib_version = str(meta_version('ossindex-lib'))  # type: ignore[no-untyped-call]
+except Exception:
+    ossindex_lib_version = 'DEVELOPMENT'
+
 
 class OssIndex:
+    DEFAULT_CONFIG_FILE = '.oss-index.config'
+
     _caching_enabled: bool = False
     _cache_directory: str = '.ossindex'
     _cache_ttl_in_hours: int = 12
@@ -41,12 +56,28 @@ class OssIndex:
     _oss_index_api_version: str = 'v3'
     _oss_index_host: str = 'https://ossindex.sonatype.org'
     _oss_max_coordinates_per_request: int = 128
+    _oss_index_authentication: Optional[requests.auth.HTTPBasicAuth] = None
 
     def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None) -> None:
         self._caching_enabled = enable_cache
         if self._caching_enabled:
             logger.info('OssIndex caching is ENABLED')
             self._setup_cache(cache_location=cache_location)
+        self._attempt_config_load()
+
+    def has_ossindex_authentication(self) -> bool:
+        return self._oss_index_authentication is not None
+
+    def _attempt_config_load(self) -> None:
+        try:
+            config_filename: str = os.path.join(os.path.expanduser('~'), OssIndex.DEFAULT_CONFIG_FILE)
+            with open(config_filename, 'r') as ossindex_confg_f:
+                ossindex_config = yaml.safe_load(ossindex_confg_f.read())
+                self._oss_index_authentication = requests.auth.HTTPBasicAuth(
+                    ossindex_config['username'], ossindex_config['password']
+                )
+        except FileNotFoundError:
+            pass
 
     def get_component_report(self, packages: List[PackageURL]) -> List[OssIndexComponent]:
         logger.debug('A total of {} Packages to be queried against OSS Index'.format(len(packages)))
@@ -117,9 +148,7 @@ class OssIndex:
         return {
             'Accept': 'application/vnd.ossindex.component-report.v1+json',
             'Content-type': 'application/vnd.ossindex.component-report-request.v1+json',
-            'User-Agent': 'python-oss-index-lib@{}'.format(
-                pkg_resources.get_distribution('ossindex-lib').version
-            )
+            'User-Agent': f'python-oss-index-lib@{ossindex_lib_version}'
         }
 
     def _get_results(self, packages: List[PackageURL]) -> List[OssIndexComponent]:
@@ -150,8 +179,13 @@ class OssIndex:
             headers=self._get_headers(),
             json={
                 'coordinates': list(map(lambda p: str(p.to_string()), packages))
-            }
+            },
+            auth=self._oss_index_authentication
         )
+
+        if not response.status_code == 200:
+            raise AccessDeniedException()
+
         results: List[OssIndexComponent] = []
         for oic in response.json(object_hook=json_decoder):
             results.append(oic)

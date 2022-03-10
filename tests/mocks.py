@@ -14,13 +14,21 @@
 # limitations under the License.
 #
 import json
-from typing import Callable
+from typing import Callable, Optional
 
 
 class MockResponse:
-    def __init__(self, data, status_code):
-        self.text = data
+    def __init__(self, data: Optional[str], status_code: int) -> None:
+        self._text = data if data else ''
         self._status_code = status_code
+
+    @property
+    def status_code(self) -> int:
+        return self._status_code
+
+    @property
+    def text(self) -> str:
+        return self._text
 
     def json(self, object_hook: Callable) -> object:
         return json.loads(self.text, object_hook=object_hook)
@@ -32,6 +40,9 @@ def mock_oss_index_post(*args, **kwargs) -> MockResponse:
 
         if 'coordinates' in request_json.keys() and len(request_json['coordinates']) > 0:
             mock_response_data = []
+            if 'pkg:pypi/pip@0.0.7' in request_json['coordinates']:
+                return MockResponse(None, 401)
+
             if 'pkg:pypi/pip@21.2.3' in request_json['coordinates']:
                 mock_response_data.append({
                     "coordinates": "pkg:pypi/pip@21.2.3",

@@ -16,20 +16,25 @@
 from tempfile import TemporaryDirectory
 from typing import List
 from unittest import TestCase, mock
-from unittest.mock import MagicMock
+from unittest.mock import Mock
 
-from packageurl import PackageURL
+# See https://github.com/package-url/packageurl-python/issues/65
+from packageurl import PackageURL  # type: ignore
 
 from mocks import mock_oss_index_post
+from ossindex.exception import AccessDeniedException
 from ossindex.model import OssIndexComponent, Vulnerability
 from ossindex.ossindex import OssIndex
+
+from tests import FIXTURES_DIRECTORY
 
 
 class TestOssIndex(TestCase):
 
     @mock.patch('requests.post', side_effect=mock_oss_index_post)
-    def test_oss_index_no_vulnerabilities(self, mock_post: MagicMock):
+    def test_oss_index_no_vulnerabilities(self, mock_post: Mock) -> None:
         oss: OssIndex = OssIndex(enable_cache=False)
+        self.assertFalse(oss.has_ossindex_authentication())
 
         results: List[OssIndexComponent] = oss.get_component_report(packages=[
             PackageURL(type='pypi', name='pip', version='21.2.3')
@@ -42,8 +47,40 @@ class TestOssIndex(TestCase):
         self.assertEqual(0, len(first_result.vulnerabilities))
 
     @mock.patch('requests.post', side_effect=mock_oss_index_post)
-    def test_oss_index_with_vulnerabilities(self, mock_post: MagicMock):
+    @mock.patch('ossindex.ossindex.os.path.expanduser', return_value=FIXTURES_DIRECTORY)
+    def test_oss_index_with_authentication(self, mock_path_user: Mock, mock_post: Mock) -> None:
         oss: OssIndex = OssIndex(enable_cache=False)
+        mock_path_user.assert_called()
+        self.assertTrue(oss.has_ossindex_authentication())
+
+        results: List[OssIndexComponent] = oss.get_component_report(packages=[
+            PackageURL(type='pypi', name='pip', version='21.2.3')
+        ])
+
+        mock_post.assert_called()
+        self.assertEqual(1, len(results))
+
+        first_result: OssIndexComponent = results.pop()
+        self.assertEqual(0, len(first_result.vulnerabilities))
+
+    @mock.patch('requests.post', side_effect=mock_oss_index_post)
+    @mock.patch('ossindex.ossindex.os.path.expanduser', return_value=FIXTURES_DIRECTORY)
+    def test_oss_index_with_authentication_failure(self, mock_path_user: Mock, mock_post: Mock) -> None:
+        oss: OssIndex = OssIndex(enable_cache=False)
+        mock_path_user.assert_called()
+        self.assertTrue(oss.has_ossindex_authentication())
+
+        with self.assertRaises(AccessDeniedException):
+            oss.get_component_report(packages=[
+                PackageURL(type='pypi', name='pip', version='0.0.7')
+            ])
+
+            mock_post.assert_called()
+
+    @mock.patch('requests.post', side_effect=mock_oss_index_post)
+    def test_oss_index_with_vulnerabilities(self, mock_post: Mock) -> None:
+        oss: OssIndex = OssIndex(enable_cache=False)
+        self.assertFalse(oss.has_ossindex_authentication())
 
         results: List[OssIndexComponent] = oss.get_component_report(packages=[
             PackageURL(type='pypi', name='cryptography', version='3.3.1')
@@ -77,8 +114,9 @@ class TestOssIndex(TestCase):
                          first_vulnerability.external_references.pop())
 
     @mock.patch('requests.post', side_effect=mock_oss_index_post)
-    def test_oss_index_with_multiple_packages(self, mock_post: MagicMock):
+    def test_oss_index_with_multiple_packages(self, mock_post: Mock) -> None:
         oss: OssIndex = OssIndex(enable_cache=False)
+        self.assertFalse(oss.has_ossindex_authentication())
 
         results: List[OssIndexComponent] = oss.get_component_report(packages=[
             PackageURL(type='pypi', name='cryptography', version='3.3.1'),
@@ -91,7 +129,7 @@ class TestOssIndex(TestCase):
             self.assertIsInstance(oic_, OssIndexComponent)
 
     @mock.patch('requests.post', side_effect=mock_oss_index_post)
-    def test_oss_index_caching_with_multiple_packages(self, mock_post: MagicMock):
+    def test_oss_index_caching_with_multiple_packages(self, mock_post: Mock) -> None:
         with TemporaryDirectory() as d:
             oss: OssIndex = OssIndex(enable_cache=True, cache_location=str(d))
             oss.purge_local_cache()

@@ -13,10 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-packageurl-python == 0.9.0
-importlib-metadata == 3.4.0 # ; python_version < '3.8'
-PyYAML == 5.4.1
-requests == 2.20.0
-tinydb == 4.5.0
-types-requests == 2.25.1
-types-setuptools == 57.0.0
+
+
+class OssIndexException(Exception):
+    """
+    Base exception which all exceptions raised by this library extend.
+    """
+    pass
+
+
+class AccessDeniedException(OssIndexException):
+    """
+    Raised if supplied credentials for Oss Index are invalid.
+    """
+    pass
