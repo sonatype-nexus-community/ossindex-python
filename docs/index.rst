@@ -31,6 +31,7 @@ that can sacn your Python applications and utilise OSS Index data, why not check
    :caption: Contents:
 
    install
+   usage
    support
    changelog
 
