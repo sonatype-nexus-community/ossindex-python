@@ -13,8 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
 
-logger = logging.getLogger('ossindex')
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+class OssIndexException(Exception):
+    """
+    Base exception which all exceptions raised by this library extend.
+    """
+    pass
+
+
+class AccessDeniedException(OssIndexException):
+    """
+    Raised if supplied credentials for Oss Index are invalid.
+    """
+    pass

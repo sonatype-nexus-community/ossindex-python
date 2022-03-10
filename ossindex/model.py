@@ -1,197 +1,325 @@
-from functools import reduce
-from typing import List, Union
-from urllib.parse import ParseResult, urlparse
-from uuid import UUID
+#
+# Copyright 2022-Present Sonatype Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from typing import Iterable, Optional, Set
 
-from packageurl import PackageURL
+# See https://github.com/package-url/packageurl-python/issues/65
+from packageurl import PackageURL  # type: ignore
 
 
 class Vulnerability:
-    _id: UUID
-    _display_name: str
-    _title: str
-    _description: str
-    _cvss_score: float
-    _cvss_vector: str
-    _cve: str
-    _cwe: str
-    _oss_index_url: ParseResult
-    _external_references: List[ParseResult]
+    """
+    Model class that represents a Vulnerability as received back from OSS Index.
 
-    @staticmethod
-    def from_json(o: dict):
+    """
+
+    def __init__(self, *, id_: str, display_name: str, title: str, description: str, cvss_score: Optional[float] = None,
+                 cvss_vector: Optional[str] = None, cve: Optional[str] = None, cwe: Optional[str] = None,
+                 version_ranges: Optional[Iterable[str]] = None, reference: str,
+                 external_references: Optional[Iterable[str]] = None):
+        self.id = id_
+        self.display_name = display_name
+        self.title = title
+        self.description = description
+        self.cvss_score = cvss_score
+        self.cvss_vector = cvss_vector
+        self.cve = cve
+        self.cwe = cwe
+        self.version_ranges = set(version_ranges or [])
+        self.reference = reference
+        self.external_references = set(external_references or [])
+
+    @property
+    def id(self) -> str:
         """
-        This method attempts to parse a response from OSS Index to a Vulnerability
+        OSS Index's unique UUID for this Vulnerability.
 
-        Example payload:
-          {
-            "id": "e4c955a3-2004-472e-920b-783fea46c3cd",
-            "displayName": "OSSINDEX-783f-ea46-c3cd",
-            "title": "CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
-            "description": "The software uses external input to construct a pathname that is intended to ...",
-            "cvssScore": 3.6,
-            "cvssVector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:C/C:L/I:N/A:N",
-            "cwe": "CWE-22",
-            "reference": "https://ossindex.sonatype.org/vulnerability/e4c955a3-2004-472e-920b-783fea46c3cd \
-                ?component-type=pypi&component-name=pip&utm_source=mozilla&utm_medium=integration&utm_content=5.0",
-            "externalReferences": [
-              "https://github.com/pypa/pip/issues/730"
-            ]
-          }
-
-        :param o: dict
-        :return: Vulnerability
+        Returns:
+             `str`
         """
-
-        v = Vulnerability(
-            id=o['id'],
-            display_name=o['displayName'],
-            title=o['title'],
-            description=o['description'],
-            cvss_score=o['cvssScore'],
-            cvss_vector=o['cvssVector'],
-            cve=o['cve'] if 'cve' in o.keys() else None,
-            cwe=o['cwe'] if 'cwe' in o.keys() else None,
-            oss_index_url=o['reference'],
-            external_references=o['externalReferences']
-        )
-
-        return v
-
-    def __init__(self, id: str, display_name: str, title: str, description: str = None,
-                 cvss_score: float = None, cvss_vector: str = None, cve: str = None, cwe: str = None,
-                 oss_index_url: str = None, external_references: List[str] = []):
-        self._id = id
-        self._display_name = display_name
-        self._title = title
-        self._description = description
-        self._cvss_score = cvss_score
-        self._cvss_vector = cvss_vector
-        self._cve = cve
-        self._cwe = cwe
-        if oss_index_url:
-            self._oss_index_url = urlparse(oss_index_url)
-        self._external_references = []
-        for ext_ref in external_references:
-            self._external_references.append(urlparse(ext_ref))
-
-    def get_id(self) -> UUID:
         return self._id
 
-    def get_display_name(self) -> str:
+    @id.setter
+    def id(self, id_: str) -> None:
+        self._id = id_
+
+    @property
+    def display_name(self) -> str:
+        """
+        displayName returned by OSS Index
+
+        Returns:
+            `str`
+        """
         return self._display_name
 
-    def get_title(self) -> str:
+    @display_name.setter
+    def display_name(self, display_name: str) -> None:
+        self._display_name = display_name
+
+    @property
+    def title(self) -> str:
+        """
+        title returned by OSS Index
+
+        Returns:
+            `str`
+        """
         return self._title
 
-    def get_description(self) -> str:
+    @title.setter
+    def title(self, title: str) -> None:
+        self._title = title
+
+    @property
+    def description(self) -> str:
+        """
+        description returned by OSS Index.
+
+        Returns:
+             `str`
+        """
         return self._description
 
-    def get_cvss_score(self) -> float:
+    @description.setter
+    def description(self, description: str) -> None:
+        self._description = description
+
+    @property
+    def cvss_score(self) -> Optional[float]:
+        """
+        CVSS Score returned from OSS Index.
+
+        Returns:
+             `float` if set else `None`
+        """
         return self._cvss_score
 
-    def get_cvss_vector(self) -> str:
+    @cvss_score.setter
+    def cvss_score(self, cvss_score: Optional[float]) -> None:
+        self._cvss_score = cvss_score
+
+    @property
+    def cvss_vector(self) -> Optional[str]:
+        """
+        CVSS Vector returned from OSS Index
+
+        Returns:
+            `str` if set else `None`
+        """
         return self._cvss_vector
 
-    def get_cve(self) -> str:
-        return self._cve
+    @cvss_vector.setter
+    def cvss_vector(self, cvss_vector: Optional[str]) -> None:
+        self._cvss_vector = cvss_vector
 
-    def get_cwe(self) -> str:
+    @property
+    def cwe(self) -> Optional[str]:
+        """
+        CWE returned from OSS Index.
+
+        .. note:
+            This is a string of the format CWE-nnn or an empty string
+
+        Returns:
+             `str` if set else `None`
+        """
         return self._cwe
 
-    def get_oss_index_reference_url(self) -> Union[str, None]:
-        return self._oss_index_url.geturl() if self._oss_index_url else None
+    @cwe.setter
+    def cwe(self, cwe: Optional[str]) -> None:
+        self._cwe = cwe
 
-    def get_external_reference_urls(self) -> List[str]:
-        return list(map(lambda ref_url: ref_url.geturl(), self._external_references))
+    @property
+    def cve(self) -> Optional[str]:
+        """
+        CVE returned from OSS Index.
 
-    def __repr__(self):
-        return '<Vulnerability id={}, name={}, cvss_score={}>'.format(
-            self._id, self._display_name, self._cvss_score
-        )
+        Returns:
+             `str` if set else `None`
+        """
+        return self._cve
 
-    def to_json(self):
-        return {
-            'id': self._id,
-            'displayName': self._display_name,
-            'title': self._title,
-            'description': self._description,
-            'cvssScore': self._cvss_score,
-            'cvssVector': self._cvss_vector,
-            'cve': self._cve,
-            'cwe': self._cwe,
-            'reference': self.get_oss_index_reference_url(),
-            'externalReferences': list(map(lambda ref: ref.geturl(), self._external_references))
-        }
+    @cve.setter
+    def cve(self, cve: Optional[str]) -> None:
+        self._cve = cve
+
+    @property
+    def reference(self) -> str:
+        """
+        Reference URL to OSS Index for this Vulnerability.
+
+        Returns:
+            `str`
+        """
+        return self._reference
+
+    @reference.setter
+    def reference(self, reference: str) -> None:
+        self._reference = reference
+
+    @property
+    def version_ranges(self) -> Set[str]:
+        """
+        Range of versions which are impacted by this Vulnerability.
+
+        Returns:
+            Set of `str`
+        """
+        return self._version_ranges
+
+    @version_ranges.setter
+    def version_ranges(self, version_ranges: Iterable[str]) -> None:
+        self._version_ranges = set(version_ranges)
+
+    @property
+    def external_references(self) -> Set[str]:
+        """
+        List of external references that provide additional information about the vulnerability.
+
+        Returns:
+            Set of `str`
+        """
+        return self._external_references
+
+    @external_references.setter
+    def external_references(self, external_references: Iterable[str]) -> None:
+        self._external_references = set(external_references)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Vulnerability):
+            return hash(other) == hash(self)
+        return False
+
+    def __hash__(self) -> int:
+        return hash((
+            self.id, self.display_name, self.title, self.description, self.cvss_score, self.cvss_vector, self.cve,
+            self.cwe, tuple(self.version_ranges), self.reference, tuple(self.external_references)
+        ))
+
+    def __repr__(self) -> str:
+        return f'<Vulnerability id={self.id}, name={self.display_name}, cvss_score={self.cvss_score:.1f}>'
 
 
 class OssIndexComponent:
-    _coordinates: str
-    _description: str
-    _oss_index_url: ParseResult
-    _vulnerabilities: List[Vulnerability] = []
+    """
+    Model class that represents a Component Report as received back from OSS Index.
 
-    @staticmethod
-    def from_json(o: dict):
-        oic = OssIndexComponent(
-            coordinates=o['coordinates'],
-            description=o['description'] if 'description' in o.keys() else None,
-            oss_index_reference_url=o['reference'],
-            vulnerabilities=o['vulnerabilities']
-        )
+    """
 
-        return oic
+    def __init__(self, *, coordinates: str, description: Optional[str] = None, reference: str,
+                 vulnerabilities: Optional[Iterable[Vulnerability]] = None) -> None:
+        self.coordinates = coordinates
+        self.description = description
+        self.reference = reference
+        self.vulnerabilities = set(vulnerabilities or [])
 
-    def __init__(self, coordinates: str, description: str, oss_index_reference_url: str,
-                 vulnerabilities: List[Vulnerability] = []):
-        self._coordinates = coordinates
-        self._description = description
-        self._oss_index_url = urlparse(oss_index_reference_url, allow_fragments=False)
-        self._vulnerabilities = vulnerabilities
+    @property
+    def coordinates(self) -> str:
+        """
+        PackageURL formatted coordinates of this Component.
 
-    def __repr__(self) -> str:
-        return '<OssIndexComponent coordinates={}, vulnerabilites={}>'.format(
-            self._coordinates, len(self._vulnerabilities)
-        )
-
-    def get_coordinates(self) -> str:
+        Returns:
+             `str`
+        """
         return self._coordinates
 
-    def get_description(self) -> str:
+    @coordinates.setter
+    def coordinates(self, coordinates: str) -> None:
+        self._coordinates = coordinates
+
+    @property
+    def description(self) -> Optional[str]:
+        """
+        Description of the Component from OSS Index.
+
+        Returns:
+            `str` if set else `None`
+        """
         return self._description
 
-    def get_package_url(self) -> PackageURL:
-        return PackageURL.from_string(purl=self.get_coordinates())
+    @description.setter
+    def description(self, description: Optional[str]) -> None:
+        self._description = description
 
-    def get_reference_url(self) -> str:
-        return str(self._oss_index_url)
+    @property
+    def reference(self) -> str:
+        """
+        URL to this Component on OSS Index.
 
-    def get_vulnerabilities(self) -> List[Vulnerability]:
+        Returns:
+             `str`
+        """
+        return self._reference
+
+    @reference.setter
+    def reference(self, reference: str) -> None:
+        self._reference = reference
+
+    @property
+    def vulnerabilities(self) -> Set[Vulnerability]:
+        """
+        Known vulnerabilities that relate to this Component.
+
+        Returns:
+             Set of `Vulnerability`
+        """
         return self._vulnerabilities
 
+    @vulnerabilities.setter
+    def vulnerabilities(self, vulnerabilities: Iterable[Vulnerability]) -> None:
+        self._vulnerabilities = set(vulnerabilities)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, OssIndexComponent):
+            return hash(other) == hash(self)
+        return False
+
+    def __hash__(self) -> int:
+        return hash((
+            self.coordinates, self.description, self.reference, tuple(self.vulnerabilities)
+        ))
+
+    def __repr__(self) -> str:
+        return f'<OssIndexComponent coordinates={self.coordinates}>'
+
+    def get_package_url(self) -> PackageURL:
+        """
+        Get a PURL representation of this components coordinates.
+
+        Returns:
+            `PackageURL`
+        """
+        return PackageURL.from_string(purl=self.coordinates)
+
     def get_max_cvss_score(self) -> float:
+        """
+        Get the maximum CVSS Score across all Vulnerabilities known for this Component.
+
+        Returns:
+             `float`
+        """
         max_cvss_score = 0.0
-        if self.has_known_vulnerabilities():
-            max_scoring_vulnerability: Vulnerability = reduce(
-                lambda a, b: a if a.get_cvss_score() > b.get_cvss_score() else b,
-                self._vulnerabilities
-            )
-            max_cvss_score = max_scoring_vulnerability.get_cvss_score()
+        if self.vulnerabilities:
+            for v in self.vulnerabilities:
+                max_cvss_score = OssIndexComponent._reduce_on_max_cvss_score(v=v, current_max=max_cvss_score)
         return max_cvss_score
 
-    def has_known_vulnerabilities(self) -> bool:
-        return len(self._vulnerabilities) != 0
-
-    def _add_vulnerability(self, vulnerability: Vulnerability):
-        self._vulnerabilities.append(vulnerability)
-
-    def set_vulnerabilities(self, vulnerabilities: List[Vulnerability]):
-        self._vulnerabilities = vulnerabilities
-
-    def to_json(self):
-        return {
-            'coordinates': self.get_coordinates(),
-            'description': self.get_description(),
-            'reference': self.get_reference_url(),
-            'vulnerabilities': list(map(lambda v: v.to_json(), self.get_vulnerabilities()))
-        }
+    @staticmethod
+    def _reduce_on_max_cvss_score(v: Vulnerability, current_max: float) -> float:
+        if v.cvss_score:
+            if v.cvss_score > current_max:
+                return v.cvss_score
+        return current_max

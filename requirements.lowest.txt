@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
-
-logger = logging.getLogger('ossindex')
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+packageurl-python == 0.9.0
+importlib-metadata == 3.4.0 # ; python_version < '3.8'
+PyYAML == 5.4.1
+requests == 2.20.0
+tinydb == 4.5.0
+types-PyYAML == 5.4.1
+types-requests == 2.25.1
+types-setuptools == 57.0.0

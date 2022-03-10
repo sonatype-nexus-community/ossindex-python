@@ -3,6 +3,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/sonatype-nexus-community/ossindex-python/Python%20CI)
 ![Python Version Support](https://img.shields.io/badge/python-3.6+-blue)
 ![PyPI Version](https://img.shields.io/pypi/v/ossindex-lib?label=PyPI&logo=pypi)
+[![Documentation](https://readthedocs.org/projects/ossindex-library/badge/?version=latest)](https://readthedocs.org/projects/ossindex-library)
 [![GitHub license](https://img.shields.io/github/license/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/blob/main/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/issues)
 [![GitHub forks](https://img.shields.io/github/forks/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/network)

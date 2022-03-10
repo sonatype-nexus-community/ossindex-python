@@ -12,9 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-import logging
 
-logger = logging.getLogger('ossindex')
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+m2r2>=0.3.2
+Sphinx>=4.3.2
+sphinx-autoapi>=1.8.4
+sphinx-rtd-theme>=1.0.0

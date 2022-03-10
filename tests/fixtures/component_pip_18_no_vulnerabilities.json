@@ -1,0 +1,7 @@
+[
+  {
+    "coordinates": "pkg:pypi/pip@18.1",
+    "description": "The PyPA recommended tool for installing Python packages.",
+    "reference": "https://ossindex.sonatype.org/component/pkg:pypi/pip@18.1?utm_source=mozilla&utm_medium=integration&utm_content=5.0"
+  }
+]

@@ -27,7 +27,9 @@ classifiers = [
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9'
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Typing :: Typed'
 ]
 keywords = [
     "SCA", "OWASP"
@@ -38,14 +40,23 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-tinydb = "^4.5.1"
-packageurl-python = "^0.9.4"
-requests = "^2.26.0"
+importlib-metadata = { version = ">= 3.4", python = "< 3.8" }
+packageurl-python = "^0.9.0"
+PyYAML = "^5.4.1"
+requests = "^2.20.0"
+tinydb = "^4.5.0"
+# `types-PyYAML` should stay in sycn with version of `PyYAML`
+types-PyYAML = "^5.4.1"
+# `types-requeests` should stay in sync with `requests`
+types-requests = "^2.25.1"
+# `types-setuptools` need to stay in sync with version of `setuptools` - but 47 was not typed...
+types-setuptools = ">= 57.0.0"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.3"
-coverage = "^5.5"
-flake8 = "^3.9.2"
+coverage = "^6.2"
+flake8 = "^4.0.1"
+mypy = ">= 0.920, < 1.00"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
