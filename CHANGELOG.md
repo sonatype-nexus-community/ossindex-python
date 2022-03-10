@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2022-03-10)
+### Feature
+* Adopted PEP-561 #4 ([`f4b8b01`](https://github.com/sonatype-nexus-community/ossindex-python/commit/f4b8b0172fabfb55362450487d9cddaeaed3dc92))
+* Added support for authentication to OSS Index #1 ([`aa26387`](https://github.com/sonatype-nexus-community/ossindex-python/commit/aa263872aeeb0ce3aa6c93de11107397f72cfb0b))
+* Re-worked how we use TinyDB to attempt to resolve #2 ([`d5564da`](https://github.com/sonatype-nexus-community/ossindex-python/commit/d5564da8aaa207806e4a04db94c247ceec5fec2b))
+
+### Fix
+* Typo in `requirements.lowest.txt` ([`696f770`](https://github.com/sonatype-nexus-community/ossindex-python/commit/696f770052486fcc194a686f06ca5b47ff1f1a23))
+* Potential fix for #2 ([`46f705d`](https://github.com/sonatype-nexus-community/ossindex-python/commit/46f705d117de799443902c2cb312f03b61a1ab44))
+* Bug in deserialisation from cache database resolved ([`e3b9a9d`](https://github.com/sonatype-nexus-community/ossindex-python/commit/e3b9a9d74c541dead24aad90a0046fae078affca))
+* Typing and imports ([`31a7e37`](https://github.com/sonatype-nexus-community/ossindex-python/commit/31a7e37e334301896f8275fb3e4f90119c05185b))
+
+### Breaking
+* #4 ([`f4b8b01`](https://github.com/sonatype-nexus-community/ossindex-python/commit/f4b8b0172fabfb55362450487d9cddaeaed3dc92))
+
 ## v0.2.1 (2021-09-16)
 ### Fix
 * Typo in README ([`a260e91`](https://github.com/sonatype-nexus-community/ossindex-python/commit/a260e912227895d42b01a4775e36e7124fbc6f0b))
