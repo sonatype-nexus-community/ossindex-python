@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2022-07-12)
+### Feature
+* Support providing authentication directly over loading from configuration file ([`1bda4a9`](https://github.com/sonatype-nexus-community/ossindex-python/commit/1bda4a94e00fca30cf7488f1cb1e1bfaadaf1676))
+* Support providing authentication directly over loading from configuration file ([`bcd86cb`](https://github.com/sonatype-nexus-community/ossindex-python/commit/bcd86cb70a6e889d5b34d9fdb2c58f77684f7b6d))
+
 ## v1.0.0 (2022-03-10)
 ### Feature
 * Adopted PEP-561 #4 ([`f4b8b01`](https://github.com/sonatype-nexus-community/ossindex-python/commit/f4b8b0172fabfb55362450487d9cddaeaed3dc92))
