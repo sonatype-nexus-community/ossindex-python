@@ -58,8 +58,8 @@ class OssIndex:
     _oss_max_coordinates_per_request: int = 128
     _oss_index_authentication: Optional[requests.auth.HTTPBasicAuth] = None
 
-    def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None, username: Optional[str],
-                 password: Optional[str] = None) -> None:
+    def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None,
+                 username: Optional[str] = None, password: Optional[str] = None) -> None:
         self._caching_enabled = enable_cache
         if self._caching_enabled:
             logger.info('OssIndex caching is ENABLED')
