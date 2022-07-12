@@ -58,12 +58,19 @@ class OssIndex:
     _oss_max_coordinates_per_request: int = 128
     _oss_index_authentication: Optional[requests.auth.HTTPBasicAuth] = None
 
-    def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None) -> None:
+    def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None,
+                 username: Optional[str] = None, password: Optional[str] = None) -> None:
         self._caching_enabled = enable_cache
         if self._caching_enabled:
             logger.info('OssIndex caching is ENABLED')
             self._setup_cache(cache_location=cache_location)
-        self._attempt_config_load()
+
+        if username and password:
+            logger.debug('Using supplied credentials for OSS Index')
+            self._oss_index_authentication = requests.auth.HTTPBasicAuth(username, password)
+        else:
+            logger.debug('Attempting to load credentials for OSS Index from configuration file')
+            self._attempt_config_load()
 
     def has_ossindex_authentication(self) -> bool:
         return self._oss_index_authentication is not None
