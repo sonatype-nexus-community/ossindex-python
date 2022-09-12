@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.1 (2022-09-12)
+### Fix
+* Relax depenency on PyYAML ([`85e689b`](https://github.com/sonatype-nexus-community/ossindex-python/commit/85e689bdcb35df4b9e59b4ad1987242ccea94415))
+
 ## v1.1.0 (2022-07-12)
 ### Feature
 * Support providing authentication directly over loading from configuration file ([`1bda4a9`](https://github.com/sonatype-nexus-community/ossindex-python/commit/1bda4a94e00fca30cf7488f1cb1e1bfaadaf1676))
