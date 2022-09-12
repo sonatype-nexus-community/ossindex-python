@@ -16,7 +16,17 @@
 name: Deploy to PyPI
 
 on:
-  workflow_dispatch
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REPORTS_DIR: CI_reports
+  DIST_DIR: dist
+  DIST_ARTIFACT: python-dist
+  PYTHON_VERSION: "3.10"
+  POETRY_VERSION: "1.1.11"
 
 jobs:
   release:
@@ -25,23 +35,64 @@ jobs:
     if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'chore(release):')
     runs-on: ubuntu-latest
     concurrency: release
+    outputs:
+      version-before: ${{ steps.before-release.outputs.version }}  # version may be empty
+      released: ${{ steps.after-release.outputs.released }}  # optional bool-ish string
+      version-after: ${{ steps.after-release.outputs.version  }}  # version may still be empty
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        # see https://github.com/actions/checkout
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v2
+          fetch-depth: 0  # action `relekang/python-semantic-release` requires all git history
+      - name: Setup python ${{ env.PYTHON_VERSION }}
+        # see https://github.com/actions/setup-python
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.7
-      - name: Install dependencies
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Setup poetry ${{ env.POETRY_VERSION }}
+        # see https://github.com/marketplace/actions/setup-poetry
+        uses: Gr1N/setup-poetry@v7
+        with:
+          poetry-version: ${{ env.POETRY_VERSION }}
+      - name: pre-hook
+        id: before-release
         run: |
-          python -m pip install poetry --upgrade pip
-          poetry config virtualenvs.create false
-          poetry install
-      - name: View poetry version
-        run: poetry --version
+          VERSION="$(poetry version --short --no-interaction --no-ansi)"
+          # version may be empty at first
+          echo "::set-output name=version::$VERSION"
       - name: Python Semantic Release
-        uses: relekang/python-semantic-release@master
+        id: semantic-release
+        # see https://python-semantic-release.readthedocs.io/en/latest/automatic-releases/github-actions.html
+        # see https://github.com/relekang/python-semantic-release
+        uses: relekang/python-semantic-release@v7.28.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository_username: __token__
+          repository_password: ${{ secrets.PYPI_TOKEN }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
+      - name: post-hook
+        id: after-release
+        run: |
+          VERSION="$(poetry version --short --no-interaction --no-ansi)"
+          # version may still be empty
+          echo "::set-output name=version::$VERSION"
+          if [ "$VERSION" != "$VERSION_PRE" ]
+          then
+            echo "::set-output name=released::true"
+          fi
+        env:
+          VERSION_PRE: ${{ steps.before-release.outputs.version }}
+      - name: Artifact python dist
+        if: |
+          !failure() && !cancelled() &&
+          steps.after-release.outputs.released
+        # see https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.DIST_ARTIFACT }}
+          path: ${{ env.DIST_DIR }}/
+          if-no-files-found: error
+          # Dist results are required for further processing.
+          # Therefore, make sure that python-semantic-release is configuret to keep dist.
+        # see https://python-semantic-release.readthedocs.io/en/latest/configuration.html?highlight=remove_dist#remove-dist
