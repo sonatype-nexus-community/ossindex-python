@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import re
 from json import JSONEncoder
 from typing import Any, Dict

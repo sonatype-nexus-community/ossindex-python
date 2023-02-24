@@ -13,6 +13,6 @@
   <exclude>src/CHANGELOG.md</exclude>
   <exclude>src/SECURITY.md</exclude>
   <exclude>**/venv/**</exclude>
-  <exclude>.tox/**</exclude>
+  <exclude>**/.tox/**</exclude>
   <exclude>**/.idea/**</exclude>
 </excludes>
