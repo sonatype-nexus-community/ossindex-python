@@ -55,7 +55,7 @@ keywords = [
 "Bug Tracker" = "https://github.com/sonatype-nexus-community/ossindex-python/issues"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 importlib-metadata = { version = ">= 3.4", python = "< 3.8" }
 packageurl-python = "^0.9.0"
 PyYAML = ">=5.4.1, <7.0.0"
