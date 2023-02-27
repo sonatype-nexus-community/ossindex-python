@@ -48,6 +48,6 @@ jobs:
           poetry version ${RC_VERSION}
           poetry build
       - name: Publish Pre Release 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@main
+        uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.PYPI_TOKEN }}
