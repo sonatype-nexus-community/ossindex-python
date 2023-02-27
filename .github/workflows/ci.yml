@@ -19,7 +19,7 @@ name: Python CI
 
 on:
   push:
-    branches: ["master", "main"]
+    branches: ["main"]
   pull_request:
   workflow_dispatch:
   schedule:
@@ -29,13 +29,13 @@ on:
 
 env:
   REPORTS_DIR: CI_reports
-  PYTHON_VERISON_DEFAULT: "3.10"
+  PYTHON_VERSION_DEFAULT: "3.10"
   POETRY_VERSION: "1.1.11"
 
 jobs:
   coding-standards:
     name: Linting & CodingStandards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         # see https://github.com/actions/checkout
@@ -44,7 +44,7 @@ jobs:
         # see https://github.com/actions/setup-python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ env.PYTHON_VERISON_DEFAULT }}
+          python-version: ${{ env.PYTHON_VERSION_DEFAULT }}
           architecture: 'x64'
       - name: Install poetry
         # see https://github.com/marketplace/actions/setup-poetry
@@ -58,7 +58,7 @@ jobs:
 
   static-code-analysis:
     name: StaticCodingAnalysis (py${{ matrix.python-version}} ${{ matrix.toxenv-factor }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +97,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        os: ['ubuntu-20.04', 'windows-latest', 'macos-latest']
         python-version:
           - "3.10" # highest supported
           - "3.9"
@@ -107,7 +107,7 @@ jobs:
         toxenv-factor: ['locked']
         include:
           - # test with the lowest dependencies
-            os: 'ubuntu-latest'
+            os: 'ubuntu-20.04'
             python-version: '3.6'
             toxenv: 'lowest'
     timeout-minutes: 30
