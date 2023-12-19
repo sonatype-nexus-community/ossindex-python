@@ -58,21 +58,24 @@ OSS Index about. If you don't want to care about generating this list yourself, 
 
 As a quick test, you could run:
 ```
+from ossindex.ossindex import OssIndex, PackageURL
+from ossindex.model import OssIndexComponent, Vulnerability
+
 o = OssIndex()
 results: List[OssIndexComponent] = o.get_component_report(packages=[
-    PackageURL.from_string(purl='pkg:pypi/pip@19.2.0')
+    PackageURL.from_string(purl='pkg:pypi/pip@23.1.2')
 ])
 for r in results:
-    print("{}: {} known vulnerabilities".format(r.get_coordinates(), len(r.get_vulnerabilities())))
+    print("{}: {} known vulnerabilities".format(r.coordinates, len(r.vulnerabilities)))
     v: Vulnerability
-    for v in r.get_vulnerabilities():
+    for v in r.vulnerabilities:
         print('    - {}'.format(str(v)))
 ```
 
 ... which would output something like ...
 ```
-pkg:pypi/pip@19.2.0: 1 known vulnerabilities
-    - <Vulnerability id=e4c955a3-2004-472e-920b-783fea46c3cd, name=OSSINDEX-783f-ea46-c3cd, cvss_score=3.6>
+pkg:pypi/pip@23.1.2: 1 known vulnerabilities
+    - <Vulnerability id=CVE-2018-20225, name=CVE-2018-20225, cvss_score=7.8>
 ```
 
 ## Logging
