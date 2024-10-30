@@ -64,10 +64,10 @@ jobs:
       matrix:
         include:
           - # test with the locked dependencies
-            python-version: '3.10'
+            python-version: '3.11'
             toxenv-factor: 'locked'
           - # test with the lowest dependencies
-            python-version: '3.6'
+            python-version: '3.8'
             toxenv-factor: 'lowest'
     steps:
       - name: Checkout
@@ -99,16 +99,15 @@ jobs:
       matrix:
         os: ['ubuntu-20.04', 'windows-latest', 'macos-latest']
         python-version:
-          - "3.10" # highest supported
+          - "3.11" # highest supported
+          - "3.10"
           - "3.9"
-          - "3.8"
-          - "3.7"
-          - "3.6" # lowest supported
+          - "3.8" # lowest supported
         toxenv-factor: ['locked']
         include:
           - # test with the lowest dependencies
             os: 'ubuntu-20.04'
-            python-version: '3.6'
+            python-version: '3.8'
             toxenv: 'lowest'
     timeout-minutes: 30
     steps:

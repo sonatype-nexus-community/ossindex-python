@@ -19,7 +19,7 @@
 # Python Library for quering OSS Index
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/sonatype-nexus-community/ossindex-python/ci.yml?branch=main)
-![Python Version Support](https://img.shields.io/badge/python-3.6+-blue)
+![Python Version Support](https://img.shields.io/badge/python-3.8+-blue)
 ![PyPI Version](https://img.shields.io/pypi/v/ossindex-lib?label=PyPI&logo=pypi)
 [![Documentation](https://readthedocs.org/projects/ossindex-library/badge/?version=latest)](https://readthedocs.org/projects/ossindex-library)
 [![GitHub license](https://img.shields.io/github/license/sonatype-nexus-community/ossindex-python)](https://github.com/sonatype-nexus-community/ossindex-python/blob/main/LICENSE)
