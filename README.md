@@ -47,9 +47,11 @@ pip install ossindex-lib
 
 ## Usage
 
-First create an instance of `OssIndex`, optionally enabling local caching
+First create an instance of `OssIndex`, optionally enabling local caching and configuring a custom OSS Index host
 ```
 o = OssIndex()
+# or with a custom host
+o = OssIndex(host='https://custom.ossindex.example.com')
 ```
 
 Then supply a `List` of [PackageURL](https://github.com/package-url/packageurl-python) objects that you want to ask

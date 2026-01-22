@@ -57,3 +57,24 @@ enable authenticated calls to OSS Index:
 
    username: my-oss-index-username
    password: my-oss-index-password
+
+Configuring a Custom OSS Index Host
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure a custom OSS Index host URL in two ways:
+
+1. **Via constructor parameter** (takes precedence):
+
+.. code-block::
+
+  ossi = OssIndex(host='https://custom.ossindex.example.com')
+
+2. **Via configuration file** (``$HOME/.oss-index.config``):
+
+.. code-block::
+
+   username: my-oss-index-username
+   password: my-oss-index-password
+   host: https://custom.ossindex.example.com
+
+The constructor parameter takes precedence over the configuration file setting.

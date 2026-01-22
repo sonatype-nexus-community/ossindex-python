@@ -155,3 +155,28 @@ class TestOssIndex(TestCase):
             self.assertEqual(2, len(results2))
             for oic_ in results2:
                 self.assertIsInstance(oic_, OssIndexComponent)
+
+    @mock.patch('requests.post', side_effect=mock_oss_index_post)
+    def test_oss_index_with_custom_host(self, mock_post: Mock) -> None:
+        custom_host = 'https://custom.ossindex.example.com'
+        oss: OssIndex = OssIndex(enable_cache=False, host=custom_host)
+
+        # Verify the custom host is set
+        self.assertEqual(custom_host, oss._oss_index_host)
+
+        # Verify the API URL uses the custom host
+        api_url = oss._get_api_url('component-report')
+        self.assertTrue(api_url.startswith(custom_host))
+        self.assertEqual(f'{custom_host}/api/v3/component-report', api_url)
+
+    @mock.patch('requests.post', side_effect=mock_oss_index_post)
+    def test_oss_index_with_custom_host_trailing_slash(self, mock_post: Mock) -> None:
+        custom_host_with_slash = 'https://custom.ossindex.example.com/'
+        oss: OssIndex = OssIndex(enable_cache=False, host=custom_host_with_slash)
+
+        # Verify trailing slash is removed
+        self.assertEqual('https://custom.ossindex.example.com', oss._oss_index_host)
+
+        # Verify the API URL is correctly formed
+        api_url = oss._get_api_url('component-report')
+        self.assertEqual('https://custom.ossindex.example.com/api/v3/component-report', api_url)

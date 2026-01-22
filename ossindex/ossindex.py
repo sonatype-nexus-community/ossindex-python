@@ -60,7 +60,8 @@ class OssIndex:
     _oss_index_authentication: Optional[requests.auth.HTTPBasicAuth] = None
 
     def __init__(self, *, enable_cache: bool = True, cache_location: Optional[str] = None,
-                 username: Optional[str] = None, password: Optional[str] = None) -> None:
+                 username: Optional[str] = None, password: Optional[str] = None,
+                 host: Optional[str] = None) -> None:
         self._caching_enabled = enable_cache
         if self._caching_enabled:
             logger.info('OssIndex caching is ENABLED')
@@ -73,6 +74,11 @@ class OssIndex:
             logger.debug('Attempting to load credentials for OSS Index from configuration file')
             self._attempt_config_load()
 
+        # Host parameter takes precedence over config file
+        if host:
+            logger.debug(f'Using custom OSS Index host: {host}')
+            self._oss_index_host = host.rstrip('/')
+
     def has_ossindex_authentication(self) -> bool:
         return self._oss_index_authentication is not None
 
@@ -81,9 +87,13 @@ class OssIndex:
             config_filename: str = os.path.join(os.path.expanduser('~'), OssIndex.DEFAULT_CONFIG_FILE)
             with open(config_filename, 'r') as ossindex_confg_f:
                 ossindex_config = yaml.safe_load(ossindex_confg_f.read())
-                self._oss_index_authentication = requests.auth.HTTPBasicAuth(
-                    ossindex_config['username'], ossindex_config['password']
-                )
+                if 'username' in ossindex_config and 'password' in ossindex_config:
+                    self._oss_index_authentication = requests.auth.HTTPBasicAuth(
+                        ossindex_config['username'], ossindex_config['password']
+                    )
+                if 'host' in ossindex_config:
+                    logger.debug(f'Loading custom OSS Index host from config: {ossindex_config["host"]}')
+                    self._oss_index_host = ossindex_config['host'].rstrip('/')
         except FileNotFoundError:
             pass
 
