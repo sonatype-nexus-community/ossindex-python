@@ -51,10 +51,8 @@ jobs:
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
 
-      - name: Ensure setuptools is old enough
-        run: |
-          pip install "setuptools<71.0.0"
-          pip freeze
+      - name: Patch Poetry's internal virtualenv setuptools
+        run: $HOME/.local/share/pypoetry/venv/bin/pip install "setuptools<71.0.0"
 
       - name: Install dependencies
         run: poetry install --no-root
