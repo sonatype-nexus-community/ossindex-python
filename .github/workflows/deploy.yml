@@ -56,7 +56,7 @@ jobs:
           poetry-version: ${{ env.POETRY_VERSION }}
 
       - name: Patch Poetry's internal virtualenv setuptools
-        run: $HOME/.local/share/pypoetry/venv/bin/pip install "setuptools<71.0.0"
+        run: $(poetry env info --path)/bin/pip install "setuptools<71.0.0"
 
       - name: Install dependencies
         run: poetry install --no-root
