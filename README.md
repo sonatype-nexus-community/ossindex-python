@@ -18,6 +18,16 @@
 
 # Python Library for quering OSS Index
 
+> ℹ️ As of May 2026, this community project has been [archived](https://contribute.sonatype.com/docs/project-classification/).
+> 
+> See also this [announcement](https://www.sonatype.com/blog/the-evolution-of-oss-index-in-the-age-of-ai) concerning OSS 
+> Index being subsumed into [Sonatype Guide](https://guide.sonatype.com). 
+>
+> There are better alternatives today:
+> - Guide API Clients: https://github.com/sonatype-nexus-community/sonatype-guide-api-client
+>
+> 🚧 This community project will receive no further updates or maintenance.
+
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/sonatype-nexus-community/ossindex-python/ci.yml?branch=main)
 ![Python Version Support](https://img.shields.io/badge/python-3.6+-blue)
 ![PyPI Version](https://img.shields.io/pypi/v/ossindex-lib?label=PyPI&logo=pypi)
