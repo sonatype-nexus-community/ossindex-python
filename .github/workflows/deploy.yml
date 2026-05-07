@@ -41,26 +41,19 @@ jobs:
       released: ${{ steps.after-release.outputs.released }}  # optional bool-ish string
       version-after: ${{ steps.after-release.outputs.version  }}  # version may still be empty
     steps:
-      - name: Checkout code
-        # see https://github.com/actions/checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # action `relekang/python-semantic-release` requires all git history
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Setup python ${{ env.PYTHON_VERSION }}
-        # see https://github.com/actions/setup-python
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION_DEFAULT }}
+          architecture: 'x64'
 
-      - name: Install and configure Poetry
-        # See https://github.com/marketplace/actions/install-poetry-action
-        uses: snok/install-poetry@v1
+      - name: Install poetry
+        uses: Gr1N/setup-poetry@48b0f77c8c1b1b19cb962f0f00dff7b4be8f81ec # v9
         with:
-          version: ${{ env.POETRY_VERSION }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          poetry-version: ${{ env.POETRY_VERSION }}
 
       - name: Install dependencies
         run: poetry install --no-root
@@ -69,9 +62,7 @@ jobs:
         run: poetry --version
 
       - name: Python Semantic Release
-        # see https://python-semantic-release.readthedocs.io/en/latest/automatic-releases/github-actions.html
-        # see https://github.com/relekang/python-semantic-release
-        uses: relekang/python-semantic-release@v7.31.2
+        uses: python-semantic-release/python-semantic-release@5f28b835b0dbaaeaf2d80c6caaac3d66d4f7d0b0 # v7.31.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repository_username: __token__

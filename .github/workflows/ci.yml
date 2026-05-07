@@ -38,21 +38,22 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        # see https://github.com/actions/checkout
-        uses: actions/checkout@v2
-      - name: Setup Python Environment
-        # see https://github.com/actions/setup-python
-        uses: actions/setup-python@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION_DEFAULT }}
           architecture: 'x64'
+
       - name: Install poetry
-        # see https://github.com/marketplace/actions/setup-poetry
-        uses: Gr1N/setup-poetry@v7
+        uses: Gr1N/setup-poetry@48b0f77c8c1b1b19cb962f0f00dff7b4be8f81ec # v9
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
+
       - name: Install dependencies
         run: poetry install --no-root
+
       - name: Run tox
         run: poetry run tox -e flake8
 
@@ -71,21 +72,22 @@ jobs:
             toxenv-factor: 'lowest'
     steps:
       - name: Checkout
-        # see https://github.com/actions/checkout
-        uses: actions/checkout@v2
-      - name: Setup Python Environment
-        # see https://github.com/actions/setup-python
-        uses: actions/setup-python@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION_DEFAULT }}
           architecture: 'x64'
+
       - name: Install poetry
-        # see https://github.com/marketplace/actions/setup-poetry
-        uses: Gr1N/setup-poetry@v7
+        uses: Gr1N/setup-poetry@48b0f77c8c1b1b19cb962f0f00dff7b4be8f81ec # v9
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
+
       - name: Install dependencies
         run: poetry install --no-root
+
       - name: Run tox
         run: poetry run tox -e mypy-${{ matrix.toxenv-factor }}
 
@@ -116,39 +118,42 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
+
       - name: Checkout
-        # see https://github.com/actions/checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Create reports directory
         run: mkdir ${{ env.REPORTS_DIR }}
-      - name: Setup Python Environment
-        # see https://github.com/actions/setup-python
-        uses: actions/setup-python@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION_DEFAULT }}
           architecture: 'x64'
-      - name: Validate Python Environment
-        run: echo "import sys; print('Python %s on %s in %s' % (sys.version, sys.platform, sys.getdefaultencoding()))" | python
+
       - name: Install poetry
-        # see https://github.com/marketplace/actions/setup-poetry
-        uses: Gr1N/setup-poetry@v7
+        uses: Gr1N/setup-poetry@48b0f77c8c1b1b19cb962f0f00dff7b4be8f81ec # v9
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
+
       - name: Install dependencies
         run: poetry install --no-root
+
       - name: Ensure build successful
         run: poetry build
+
       - name: Run tox
         run: poetry run tox -e py-${{ matrix.toxenv-factor }} -s false
+
       - name: Generate coverage reports
         run: >
           poetry run coverage report &&
           poetry run coverage xml -o ${{ env.REPORTS_DIR }}/coverage-${{ matrix.os }}-${{ matrix.python-version }}.xml &&
           poetry run coverage html -d ${{ env.REPORTS_DIR }}
+
       - name: Artifact reports
         if: ${{ ! cancelled() }}
-        # see https://github.com/actions/upload-artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.REPORTS_ARTIFACT }}
           path: ${{ env.REPORTS_DIR }}
