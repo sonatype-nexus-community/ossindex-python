@@ -141,6 +141,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install gettext
+          sudo mkdir -p /usr/local/opt
           sudo ln -sfn $(brew --prefix gettext) /usr/local/opt/gettext
 
       - name: Set up Python
