@@ -46,14 +46,15 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION_DEFAULT }}
           architecture: 'x64'
 
-      - name: Ensure setuptools is old enough
-        run: |
-          pip install "setuptools<71.0.0"
-
       - name: Install poetry
         uses: Gr1N/setup-poetry@48b0f77c8c1b1b19cb962f0f00dff7b4be8f81ec # v9
         with:
           poetry-version: ${{ env.POETRY_VERSION }}
+
+      - name: Ensure setuptools is old enough
+        run: |
+          pip install "setuptools<71.0.0"
+          pip freeze
 
       - name: Install dependencies
         run: poetry install --no-root
